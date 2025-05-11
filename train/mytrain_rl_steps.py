@@ -10,7 +10,7 @@ import torch.optim as optim
 #from radgraph import F1RadGraph
 from torch.utils.data import DataLoader
 import pandas as pd
-# import wandb
+import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.getcwd()), os.pardir))) # "/home/user/RRG/rrg"
 
@@ -216,19 +216,19 @@ test_subset_loader = DataLoader(
 # wandb
 ####################################################################
 
-# wandb.init(
-#     project="VQA-RRG-training(Bertscore.99)",
-#     name=args.exp_name,
-#     config={
-#         "architecture": args.model_arch,
-#         "use_nll": args.use_nll,
-#         "top_k": args.top_k,
-#         "batch_size": batch_size,
-#         "accumulate_grad_batches": accumulate_grad_batches,
-#         "learning_rate": 5e-5,
-#         "epochs": epochs
-#     }
-# )
+wandb.init(
+    project="VQA-RRG-training",
+    name=f"Cluster: {args.cluster_id} ; Process: {args.process_id} ; scores: (nll, {args.scores}); scores_weights: ({args.scores_weights})",
+    config={
+        "architecture": args.model_arch,
+        "use_nll": args.use_nll,
+        "top_k": args.top_k,
+        "batch_size": batch_size,
+        "accumulate_grad_batches": accumulate_grad_batches,
+        "learning_rate": 5e-5,
+        "epochs": epochs
+    }
+)
 
 ####################################################################
 # Training
@@ -406,10 +406,9 @@ for epoch in range(epochs):
                     torch.save(model.state_dict(), model_step_path)
                     print(f"Modelo guardado en paso {steps}: {model_step_path}")
                     # Log con wandb
-                    # wandb.log({
-                    #     # "radgraph": calculated_rg,
-                    #     "bertscore": calculated_bertscore
-                    # })
+                    wandb.log({
+                        "bertscore": calculated_bertscore
+                    })
 
 
                 if steps % accumulate_grad_batches == 0 and steps != 0:

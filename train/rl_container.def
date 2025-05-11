@@ -23,6 +23,3 @@ From: python:3.9.18-slim
 %environment
     export PATH=/project:$PATH
     export PYTHONPATH=/project
-
-%runscript
-    exec bash /project/rl_train.sh
