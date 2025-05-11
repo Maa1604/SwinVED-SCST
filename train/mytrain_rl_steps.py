@@ -7,10 +7,9 @@ import torch.nn as nn
 from tqdm import tqdm
 import multiprocessing
 import torch.optim as optim
-#from radgraph import F1RadGraph
 from torch.utils.data import DataLoader
 import pandas as pd
-import wandb
+# import wandb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.getcwd()), os.pardir))) # "/home/user/RRG/rrg"
 
@@ -19,12 +18,7 @@ from mymodels.swinbertcrossLORA import SwinBERTFinetuned
 
 
 from myrl.scst import SCST
-# from myscorers.bleu.bleu import Bleu
-# from myscorers.meteor.meteor import MeteorScorer
-# from myscorers.cider.cider import Cider
-# from myscorers.rouge.rouge import Rouge
 from mydatasets.mimic_dataset import mimic_Dataset
-# from myscorers.chexbert.chexbert import myF1ChexBert
 from pycocoevalcap.bertscore.bertscore import BertScorer
 from pycocoevalcap.myradgraph.myradgraph import myRadGraph
 from train.train_utils import multiassign, Hard_Negative_Mining
@@ -40,6 +34,8 @@ parser = argparse.ArgumentParser(description='Train NLL for RRG.')
 
 # Agrega argumentos posibles
 parser.add_argument('--exp_name', type=str, help='Experiment name.')
+parser.add_argument('--cluster_id', type=str, required=True, help='Cluster ID.')
+parser.add_argument('--process_id', type=str, required=True, help='Process ID.')
 parser.add_argument('--model_arch', type=str, help='Architecture to train')
 parser.add_argument('--load_weights', type=str, default=None, help='Load weights.')
 parser.add_argument('--hnm', type=bool, default=False, help='Use Hard Negative Mining.')
@@ -90,14 +86,6 @@ if not os.path.exists(EXP_DIR_PATH):
 # Load Scorers
 ####################################################################
 
-# bleu1_scorer = Bleu(n=1)
-# bleu2_scorer = Bleu(n=2)
-# bleu3_scorer = Bleu(n=3)
-# bleu4_scorer = Bleu(n=4)
-# meteor_scorer = MeteorScorer()
-# cider_scorer = Cider(n=4, sigma=6.0)
-# rougel_scorer = Rouge(rouges=['rougeL'])
-# f1cxb_scorer = myF1ChexBert()
 bert_scorer = BertScorer()
 radgraph_scorer = myRadGraph(reward_level='partial')
 
@@ -107,10 +95,6 @@ radgraph_scorer = myRadGraph(reward_level='partial')
 
 DICT_MODELS = {
     "SwinBERTFinetuned": SwinBERTFinetuned(),
-    # "SwinBERT9k": SwinBERT9k(),
-    # "ResidualSwin": ResidualSwinBert(),
-    # "ResidualEfficient": ResidualEfficientBert(),
-    # "TinyViTBert": TinyViTBert(),
 }
 device = 'cuda:0'
 model = DICT_MODELS[args.model_arch]
@@ -172,9 +156,6 @@ test_dataloader = DataLoader(
     num_workers=num_workers,
     collate_fn=test_dataset.get_collate_fn())
 
-
-
-
 ####################################################################
 # Training settings
 ####################################################################
@@ -216,19 +197,19 @@ test_subset_loader = DataLoader(
 # wandb
 ####################################################################
 
-wandb.init(
-    project="VQA-RRG-training",
-    name=f"Cluster: {args.cluster_id} ; Process: {args.process_id} ; scores: (nll, {args.scores}); scores_weights: ({args.scores_weights})",
-    config={
-        "architecture": args.model_arch,
-        "use_nll": args.use_nll,
-        "top_k": args.top_k,
-        "batch_size": batch_size,
-        "accumulate_grad_batches": accumulate_grad_batches,
-        "learning_rate": 5e-5,
-        "epochs": epochs
-    }
-)
+# wandb.init(
+#     project="VQA-RRG-training",
+#     name=f"Cluster: {args.cluster_id} ; Process: {args.process_id} ; scores: (nll, {args.scores}); scores_weights: ({args.scores_weights})",
+#     config={
+#         "architecture": args.model_arch,
+#         "use_nll": args.use_nll,
+#         "top_k": args.top_k,
+#         "batch_size": batch_size,
+#         "accumulate_grad_batches": accumulate_grad_batches,
+#         "learning_rate": 5e-5,
+#         "epochs": epochs
+#     }
+# )
 
 ####################################################################
 # Training
@@ -266,7 +247,7 @@ def save_results_to_csv(l_refs, l_hyps, epoch, exp_dirpath, split, step=0):
 
     # Build the output file name based on whether step is included
     if step == 0:
-        filename = f"results_{split}_epoch_{epoch}.csv"
+        filename = f"results_{split}_epoch_{epoch}_final.csv"
     else:
         filename = f"results_{split}_epoch_{epoch}_step_{step}.csv"
 
@@ -301,7 +282,7 @@ for epoch in range(epochs):
         train_hnm_loss = 0
         dict_loss = {}
     
-    eval_every_n_steps = 10 #43200 4h  # Puedes ajustar esto
+    eval_every_n_steps = 40 #43200 4h  # Puedes ajustar esto
 
     if epoch != 100: # Do Test first    #0
         model.train()
@@ -406,9 +387,9 @@ for epoch in range(epochs):
                     torch.save(model.state_dict(), model_step_path)
                     print(f"Modelo guardado en paso {steps}: {model_step_path}")
                     # Log con wandb
-                    wandb.log({
-                        "bertscore": calculated_bertscore
-                    })
+                    # wandb.log({
+                    #     "bertscore": calculated_bertscore
+                    # })
 
 
                 if steps % accumulate_grad_batches == 0 and steps != 0:
@@ -545,11 +526,6 @@ for epoch in range(epochs):
                 reference_answers = batch['answers']
 
                 for r, h in zip(reference_answers, generated_answers):
-                    #ref.append(r + "\n")
-                    #gen.append(h + "\n")
-                    #print("ref: \t" + r + "\n")
-                    #print("hyp: \t" + h + "\n")
-                    #print("----------------------")
                     l_refs.append(r)
                     l_hyps.append(h)
 
@@ -567,21 +543,10 @@ for epoch in range(epochs):
     test_loss /= (len(test_dataloader.dataset) // batch_size)
     print(f'Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f}', end='')
 
-    # if args.hnm:
-    #     train_hnm_loss /= (len(HNM_trainloader.dataset) // batch_size)
-    #     print(f" | Train HNM Loss: {train_hnm_loss}")
-    # else:
-    #     print("")
-
-    # if args.metrics_on_train:
-    #     file_name = save_results_to_csv(l_refs, l_hyps, epoch, EXP_DIR_PATH, "train")
-    #     print(f"\nResultados de train guardados en: {file_name}", end='')
-
     file_name = save_results_to_csv(l_refs, l_hyps, epoch, EXP_DIR_PATH, "test")
     print(f"\nResultados de test guardados en: {file_name}\n")
 
     # Calculate metrics
-    # metrics_table, test_metrics = metrics_to_log(train_refs, train_hyps, test_refs, test_hyps, train_loss, test_loss, train_hnm_loss)
     gts = {k: [{ 'caption': v }] for k, v in enumerate(l_refs)}
     res = {k: [{ 'caption': v }] for k, v in enumerate(l_hyps)}
 
@@ -589,57 +554,12 @@ for epoch in range(epochs):
     evaluator = Evaluator()
     evaluator.do_the_thing(gts, res)
 
-    # print("EJEEJEJEJEJEJ\n")
-    # print(optimizer.param_groups[0]['lr'])
-
-    # print("EJEEJEJEJEJEJ\n")
     metrics_table = Evaluator.metrics_to_log(evaluator.evaluation_report, train_loss, test_loss, lr= optimizer.param_groups[0]['lr'])
 
 
-    if best_bleu1 < evaluator.evaluation_report['Bleu_1']:
-        try:
-            os.remove(EXP_DIR_PATH + "/best_bleu1_" + str(epoch_best_bleu1) + "_model.pt")
-        except OSError as e:
-            print("No se ha eliminado nada")
-        best_bleu1 = evaluator.evaluation_report['Bleu_1']
-        epoch_best_bleu1 = epoch
-        torch.save(model.state_dict(), EXP_DIR_PATH + "/best_bleu1_" + str(epoch) + "_model.pt")
+    # Al final de cada época, guarda el modelo con el nombre estándar
+    torch.save(model.state_dict(), f"{EXP_DIR_PATH}/model_epoch_{epoch}_final.pt")
 
-    if best_cider < evaluator.evaluation_report['CIDEr']:
-        try:
-            os.remove(EXP_DIR_PATH + "/best_cider_" + str(epoch_best_cider) + "_model.pt")
-        except OSError as e:
-            print("No se ha eliminado nada")
-        best_cider = evaluator.evaluation_report['CIDEr']
-        epoch_best_cider = epoch
-        torch.save(model.state_dict(), EXP_DIR_PATH + "/best_cider_" + str(epoch) + "_model.pt")
-
-    if best_meteor < evaluator.evaluation_report['METEOR']:
-        try:
-            os.remove(EXP_DIR_PATH + "/best_meteor_" + str(epoch_best_meteor) + "_model.pt")
-        except OSError as e:
-            print("No se ha eliminado nada")
-        best_meteor = evaluator.evaluation_report['METEOR']
-        epoch_best_meteor = epoch
-        torch.save(model.state_dict(), EXP_DIR_PATH + "/best_meteor_" + str(epoch) + "_model.pt")
-
-    if best_rougel < evaluator.evaluation_report['ROUGE_L']:
-        try:
-            os.remove(EXP_DIR_PATH + "/best_rougel_" + str(epoch_best_rougel) + "_model.pt")
-        except OSError as e:
-            print("No se ha eliminado nada")
-        best_rougel = evaluator.evaluation_report['ROUGE_L']
-        epoch_best_rougel = epoch
-        torch.save(model.state_dict(), EXP_DIR_PATH + "/best_rougel_" + str(epoch) + "_model.pt")
-
-    if best_bertscore < evaluator.evaluation_report['BERTScore']:
-        try:
-            os.remove(EXP_DIR_PATH + "/best_bertscore_" + str(epoch_best_bertscore) + "_model.pt")
-        except OSError as e:
-            print("No se ha eliminado nada")
-        best_bertscore = evaluator.evaluation_report['BERTScore']
-        epoch_best_bertscore = epoch
-        torch.save(model.state_dict(), EXP_DIR_PATH + "/best_bertscore_" + str(epoch) + "_model.pt")
 
     with open(EXP_DIR_PATH + "/log.txt", 'a') as file:
         # Write the string to the file
