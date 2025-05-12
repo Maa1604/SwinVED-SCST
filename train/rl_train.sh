@@ -8,6 +8,19 @@ SCORES_WEIGHTS=$3
 SCORES=$4
 SCORES_ARGS=$5
 
+# Sanitize variables for use in tag name
+TAG_NAME="run_${CLUSTER_ID}_${PROCESS_ID}"
+
+# Create Git tag with metadata in the message
+git tag -a $TAG_NAME -m "Run with:
+- Cluster ID: $CLUSTER_ID
+- Process ID: $PROCESS_ID
+- Scores: NLL,$SCORES
+- Scores Weights: $SCORES_WEIGHTS
+- Scores Args: $SCORES_ARGS"
+
+git push origin $TAG_NAME
+
 # (Optional) Use them in your script
 echo "Running Cluster ID: $CLUSTER_ID, Process ID: $PROCESS_ID"
 
