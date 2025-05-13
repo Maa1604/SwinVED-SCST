@@ -3,3 +3,4 @@ __pycache__/
 EXPERIMENTS/
 LlamaDATA/
 wandb/
+swin_mimic/

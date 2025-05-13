@@ -9,4 +9,4 @@ DICT_CSV_MIMIC_PATH = {
 VOCAB_PATH = "/home/maasala/llama-vqa/LlamaDATA/vocab.tgt"
 
 SWINB_IMAGENET22K_WEIGHTS = "microsoft/swin-base-patch4-window12-384-in22k"
-SWINB_IMAGENET22K_WEIGHTS_FINETUNE = "/home/maasala/RadiologyVQA/swin_mimic"
+SWINB_IMAGENET22K_WEIGHTS_FINETUNE = "/home/maasala/llama-vqa/swin_mimic"
