@@ -4,3 +4,4 @@ EXPERIMENTS/
 LlamaDATA/
 wandb/
 swin_mimic/
+wandb.env

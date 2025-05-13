@@ -10,8 +10,14 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import pandas as pd
 import wandb
+from dotenv import load_dotenv
+
+load_dotenv("../wandb.env")
 
 sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.getcwd()), os.pardir))) # "/home/user/RRG/rrg"
+
+if not os.getenv("WANDB_API_KEY"):
+    raise RuntimeError("WANDB_API_KEY not set. Please use a secure env file.")
 
 
 from mymodels.swinbertcrossLORA import SwinBERTFinetuned
