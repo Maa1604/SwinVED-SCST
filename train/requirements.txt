@@ -278,3 +278,4 @@ widgetsnbextension
 xxhash==3.4.1
 yarl==1.9.3
 zipp
+python-dotenv
