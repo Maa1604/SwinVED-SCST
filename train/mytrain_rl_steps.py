@@ -335,7 +335,7 @@ for epoch in range(start_epoch, epochs):
         train_hnm_loss = 0
         dict_loss = {}
     
-    eval_every_n_steps = 40 #43200 4h  # Puedes ajustar esto
+    eval_every_n_steps = 1000000 #43200 4h  # Puedes ajustar esto
 
     if epoch != 100: # Do Test first    #0
         model.train()
