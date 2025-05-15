@@ -7,6 +7,7 @@ PROCESS_ID=$2
 SCORES_WEIGHTS=$3
 SCORES=$4
 SCORES_ARGS=$5
+CHKP=$6
 
 # Sanitize variables for use in tag name
 TAG_NAME="run_${CLUSTER_ID}_${PROCESS_ID}"
@@ -37,6 +38,13 @@ EXP_NAME="SwinBERTFinetuned_RL_${CLUSTER_ID}.${PROCESS_ID}__Scores__${SCORE_STRI
 # (Optional) Use them in your script
 echo "Running Cluster ID: $CLUSTER_ID, Process ID: $PROCESS_ID"
 
+# Optional argument for checkpoint
+RESUME_ARG=""
+if [ -n "$CHKP" ]; then
+    RESUME_ARG="--resume_ckpt $CHKP"
+fi
+
+
 python mytrain_rl_steps.py \
     --exp_name "$EXP_NAME" \
     --cluster_id ${CLUSTER_ID} \
@@ -47,5 +55,6 @@ python mytrain_rl_steps.py \
     --scores ${SCORES} \
     --scores_args ${SCORES_ARGS} \
     --use_nll True \
-    --top_k 0
+    --top_k 0 \
+    $RESUME_ARG
 

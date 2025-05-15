@@ -11,6 +11,11 @@ from torch.utils.data import DataLoader
 import pandas as pd
 import wandb
 from dotenv import load_dotenv
+import os
+import random
+import torch
+import numpy as np
+import time
 
 load_dotenv("../wandb.env")
 
@@ -52,6 +57,7 @@ parser.add_argument('--scores_args', type=str, default=None, help='Load weights.
 parser.add_argument('--scores_weights', type=str, default=None, help='Load weights.')
 parser.add_argument('--use_nll', type=bool, default=True, help='Use NLL in SCST.')
 parser.add_argument('--top_k', type=int, default=0, help='top_k value.')
+parser.add_argument('--resume_ckpt', type=str, default=None, help='Path to checkpoint to resume training from.')
 
 # Parsea los argumentos
 args = parser.parse_args()
@@ -144,16 +150,25 @@ train_dataset = mimic_Dataset(
 # DataLoader Class
 ####################################################################
 
+# Set reproducible seed for shuffling
+SEED = 42
+random.seed(SEED)
+torch.manual_seed(SEED)
+np.random.seed(SEED)
+generator = torch.Generator()
+generator.manual_seed(SEED)
+
 batch_size = 1 # 12                         *se ha cambiado porque sino el generate falla al no tener preguntas del mismo tamaño
 accumulate_grad_batches = 12 # 2
-num_workers = multiprocessing.cpu_count()-1
+num_workers = int(os.environ.get("OMP_NUM_THREADS", multiprocessing.cpu_count() - 1))
 print("Num workers", num_workers)
 train_dataloader = DataLoader(
     train_dataset, 
     batch_size, 
     shuffle=True, 
     num_workers=num_workers,
-    collate_fn=train_dataset.get_collate_fn())
+    collate_fn=train_dataset.get_collate_fn(),
+    generator=generator)
 
 test_dataloader = DataLoader(
     test_dataset, 
@@ -176,28 +191,6 @@ lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.8
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 print("Params: ", count_parameters(model))
-
-
-####################################################################
-# Para metricas
-####################################################################
-
-from torch.utils.data import Subset
-
-# Compute fixed indices: first quarter of the dataset
-num_test_samples = len(test_dataset)
-quarter_indices = list(range(num_test_samples // 4))
-
-# Create a fixed subset
-test_subset = Subset(test_dataset, quarter_indices)
-test_subset_loader = DataLoader(
-    test_subset, 
-    batch_size=1, 
-    shuffle=False, 
-    num_workers=num_workers,
-    collate_fn=test_dataset.get_collate_fn()
-)
-
 
 ####################################################################
 # wandb
@@ -224,6 +217,54 @@ wandb.init(
 )
 
 ####################################################################
+# Get last checkpoint
+####################################################################
+start_step = 0
+start_epoch = 0
+
+if args.resume_ckpt:
+    checkpoint_path = os.path.join("../EXPERIMENTS", args.resume_ckpt)
+    if not os.path.exists(checkpoint_path):
+        raise ValueError(f"Provided checkpoint path does not exist: {checkpoint_path}")
+    
+    # Load full checkpoint
+    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+
+    # Restore model, optimizer, scheduler
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    # Fix: move optimizer tensors to the correct device (e.g. cuda:0)
+    for state in optimizer.state.values():
+        for k, v in state.items():
+            if isinstance(v, torch.Tensor):
+                state[k] = v.to(device)
+
+    lr_scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+
+    # Get saved step and epoch
+    saved_epoch = checkpoint.get('epoch', 0)
+    saved_step = checkpoint.get('step', 0)
+
+    # Apply logic: if step == 0 → start next epoch
+    start_step = saved_step
+    start_epoch = saved_epoch + 1 if saved_step == 0 else saved_epoch
+
+    print(f"Resuming from checkpoint: {checkpoint_path}, starting from epoch {start_epoch}, step {start_step}")
+    
+    with open(EXP_DIR_PATH + "/log.txt", 'a') as file:
+        file.write(f"Continuing from checkpoint: {checkpoint_path}\n")
+else:
+    print("No checkpoint provided; training from scratch.")
+
+####################################################################
+# Tiempo
+####################################################################
+start_time = time.time()
+max_duration = 36 * 3600  # 36 horas en segundos
+
+
+
+####################################################################
 # Training
 ####################################################################
 
@@ -236,7 +277,7 @@ model.to(device)
 import os
 import pandas as pd
 
-def save_results_to_csv(l_refs, l_hyps, epoch, exp_dirpath, split, step=0):
+def save_results_to_csv(l_refs, l_hyps, epoch, exp_dirpath, split, time, step=0):
     """
     Saves references and hypotheses to a CSV file in the experiment directory for a specific epoch and optional step.
 
@@ -259,9 +300,9 @@ def save_results_to_csv(l_refs, l_hyps, epoch, exp_dirpath, split, step=0):
 
     # Build the output file name based on whether step is included
     if step == 0:
-        filename = f"results_{split}_epoch_{epoch}_final.csv"
+        filename = f"results_{split}_epoch_{epoch}_final_time_{time}.csv"
     else:
-        filename = f"results_{split}_epoch_{epoch}_step_{step}.csv"
+        filename = f"results_{split}_epoch_{epoch}_step_{step}_time_{time}.csv"
 
     output_file = os.path.join(exp_dirpath, filename)
 
@@ -271,20 +312,20 @@ def save_results_to_csv(l_refs, l_hyps, epoch, exp_dirpath, split, step=0):
     return output_file
 
 
-best_bleu1 = -9999999.9
-best_cider = -9999999.9
-best_meteor = -9999999.9
-best_bertscore = -9999999.9
-best_f1_chexbert = -9999999.9
-best_rougel = -9999999.9
-epoch_best_bleu1 = 0
-epoch_best_cider = 0
-epoch_best_meteor = 0
-epoch_best_bertscore = 0
-epoch_best_f1_chexbert = 0
-epoch_best_rougel = 0
+# best_bleu1 = -9999999.9
+# best_cider = -9999999.9
+# best_meteor = -9999999.9
+# best_bertscore = -9999999.9
+# best_f1_chexbert = -9999999.9
+# best_rougel = -9999999.9
+# epoch_best_bleu1 = 0
+# epoch_best_cider = 0
+# epoch_best_meteor = 0
+# epoch_best_bertscore = 0
+# epoch_best_f1_chexbert = 0
+# epoch_best_rougel = 0
 print("\n---- Start Training ----")
-for epoch in range(epochs):
+for epoch in range(start_epoch, epochs):
     
     #epoch = 1
     # Train
@@ -301,6 +342,8 @@ for epoch in range(epochs):
         optimizer.zero_grad()
         with tqdm(iter(train_dataloader), desc="Epoch " + str(epoch), unit="batch") as tepoch:
             for steps, batch in enumerate(tepoch):
+                if steps <= start_step and epoch <= start_epoch:
+                    continue  # Skip already-trained steps
                 
                 pixel_values = batch['images'].to(device)
                 # inputs_id = batch['input_ids'].to(device)
@@ -350,14 +393,20 @@ for epoch in range(epochs):
                 # Calculate gradients
                 loss.backward()
 
+                current_time = time.time()
+                elapsed_time = current_time - start_time
+                trigger_by_steps = (steps % eval_every_n_steps == 0 and steps != 0)
+                trigger_by_time = elapsed_time >= max_duration
 
-                if steps % eval_every_n_steps == 0 and steps != 0:
+                if trigger_by_steps or trigger_by_time:
+                    if trigger_by_time:
+                        max_duration *= 2  # Duplicar para evitar reentradas cada paso
                     model.eval()
                     partial_test_loss = 0
                     l_refs = []
                     l_hyps = []
                     with torch.no_grad():
-                        for batch in test_subset_loader:
+                        for batch in test_dataloader:
                             pixel_values = batch['images'].to(device)
                             questions_ids = batch['questions_ids'].to(device)
                             questions_mask = batch['questions_mask'].to(device)
@@ -391,12 +440,20 @@ for epoch in range(epochs):
                                 l_hyps.append(h)
 
 
-                    save_results_to_csv(l_refs, l_hyps, epoch, EXP_DIR_PATH, "test", step= steps) #ahora aqui
+                    save_results_to_csv(l_refs, l_hyps, epoch, EXP_DIR_PATH, "test", time = int(elapsed_time), step= steps) #ahora aqui
                     # calculated_rg = radgraph_scorer(l_refs, l_hyps)
                     calculated_bertscore = bert_scorer(l_hyps, l_refs)
                     
                     model_step_path = os.path.join(EXP_DIR_PATH, f"model_epoch_{epoch}_step_{steps}.pt")
-                    torch.save(model.state_dict(), model_step_path)
+                    checkpoint = {
+                        'model_state_dict': {k: v.cpu() for k, v in model.state_dict().items()},
+                        'optimizer_state_dict': optimizer.state_dict(),
+                        'scheduler_state_dict': lr_scheduler.state_dict(),
+                        'epoch': epoch,
+                        'step': steps,
+                    }
+                    with open(model_step_path, 'wb') as f:
+                        torch.save(checkpoint, f)
                     print(f"Modelo guardado en paso {steps}: {model_step_path}")
                     # Log con wandb
                     wandb.log({
@@ -555,7 +612,9 @@ for epoch in range(epochs):
     test_loss /= (len(test_dataloader.dataset) // batch_size)
     print(f'Train Loss: {train_loss:.4f} | Test Loss: {test_loss:.4f}', end='')
 
-    file_name = save_results_to_csv(l_refs, l_hyps, epoch, EXP_DIR_PATH, "test")
+    current_time = time.time()
+    elapsed_time = current_time - start_time
+    file_name = save_results_to_csv(l_refs, l_hyps, epoch, EXP_DIR_PATH, "test", time = int(elapsed_time))
     print(f"\nResultados de test guardados en: {file_name}\n")
 
     # Calculate metrics
@@ -568,9 +627,18 @@ for epoch in range(epochs):
 
     metrics_table = Evaluator.metrics_to_log(evaluator.evaluation_report, train_loss, test_loss, lr= optimizer.param_groups[0]['lr'])
 
-
     # Al final de cada época, guarda el modelo con el nombre estándar
-    torch.save(model.state_dict(), f"{EXP_DIR_PATH}/model_epoch_{epoch}_final.pt")
+    save_path = os.path.join(EXP_DIR_PATH, f"model_epoch_{epoch}_final.pt")
+    checkpoint = {
+        'model_state_dict': {k: v.cpu() for k, v in model.state_dict().items()},
+        'optimizer_state_dict': optimizer.state_dict(),
+        'scheduler_state_dict': lr_scheduler.state_dict(),
+        'epoch': epoch,
+        'step': 0,
+    }
+    with open(save_path, 'wb') as f:
+        torch.save(checkpoint, f)
+
 
 
     with open(EXP_DIR_PATH + "/log.txt", 'a') as file:
@@ -580,4 +648,13 @@ for epoch in range(epochs):
     print(f'Metrics saved in {EXP_DIR_PATH}/log.txt\n')
 
 # Save Final weights
-torch.save(model.state_dict(), EXP_DIR_PATH + "/last_model.pt")
+final_ckpt_path = os.path.join(EXP_DIR_PATH, "last_model.pt")
+checkpoint = {
+    'model_state_dict': {k: v.cpu() for k, v in model.state_dict().items()},
+    'optimizer_state_dict': optimizer.state_dict(),
+    'scheduler_state_dict': lr_scheduler.state_dict(),
+    'epoch': epoch,
+    'step': 0  # because you're saving at the end of the epoch
+}
+with open(final_ckpt_path, 'wb') as f:
+    torch.save(checkpoint, f)
