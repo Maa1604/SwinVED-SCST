@@ -25,8 +25,8 @@ git push origin $TAG_NAME
 
 
 # Build pretty score string: nll weight + each scorer and weight
-IFS=',' read -r -a WEIGHTS_ARRAY <<< "$SCORES_WEIGHTS"
-IFS=',' read -r -a SCORES_ARRAY <<< "$SCORES"
+IFS=':' read -r -a WEIGHTS_ARRAY <<< "$SCORES_WEIGHTS"
+IFS=':' read -r -a SCORES_ARRAY <<< "$SCORES"
 
 SCORE_STRING="nll:${WEIGHTS_ARRAY[0]}"
 for i in "${!SCORES_ARRAY[@]}"; do
