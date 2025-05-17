@@ -63,13 +63,13 @@ parser.add_argument('--resume_ckpt', type=str, default=None, help='Path to check
 args = parser.parse_args()
 
 # Prepare RL args
-scores = args.scores.split(",")
+scores = args.scores.split(":")
 
-scores_weights = args.scores_weights.split(',')
+scores_weights = args.scores_weights.split(':')
 for i in range(len(scores_weights)):
     scores_weights[i] = float(scores_weights[i])
 
-scores_args = args.scores_args.split(",")
+scores_args = args.scores_args.split(":")
 for i in range(len(scores_args)):
     scores_args[i] = json.loads(scores_args[i])
 
