@@ -197,7 +197,7 @@ print("Params: ", count_parameters(model))
 ####################################################################
 
 scores = args.scores.split(",") if isinstance(args.scores, str) else args.scores
-weights = [float(w) for w in args.scores_weights.split(",")] if isinstance(args.scores_weights, str) else args.scores_weights
+weights = [float(w) for w in args.scores_weights.split(":")] if isinstance(args.scores_weights, str) else args.scores_weights
 
 
 wandb.init(
