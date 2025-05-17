@@ -1,4 +1,5 @@
 #!/bin/bash
+cd /home/maasala/llama-vqa/train 
 
 echo "RUNNING: $0 $@"
 
