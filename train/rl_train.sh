@@ -1,6 +1,8 @@
 #!/bin/bash
 cd /home/maasala/llama-vqa/train 
 
+nvidia-smi --query-gpu=name --format=csv,noheader
+
 echo "RUNNING: $0 $@"
 
 CLUSTER_ID=$1
