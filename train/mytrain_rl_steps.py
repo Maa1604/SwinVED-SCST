@@ -158,7 +158,7 @@ np.random.seed(SEED)
 generator = torch.Generator()
 generator.manual_seed(SEED)
 
-batch_size = 1 # 12                         *se ha cambiado porque sino el generate falla al no tener preguntas del mismo tamaño
+batch_size = 2 # 12                         *se ha cambiado porque sino el generate falla al no tener preguntas del mismo tamaño
 accumulate_grad_batches = 12 # 2
 num_workers = int(os.environ.get("OMP_NUM_THREADS", multiprocessing.cpu_count() - 1))
 print("Num workers", num_workers)
@@ -260,7 +260,7 @@ else:
 # Tiempo
 ####################################################################
 start_time = time.time()
-max_duration = 36 * 3600  # 36 horas en segundos
+max_duration = 38 * 3600  # ir ajustando
 
 
 
@@ -270,9 +270,6 @@ max_duration = 36 * 3600  # 36 horas en segundos
 
 # Load model in GPU
 model.to(device)
-
-#model = torch.compile(model, mode="reduce-overhead")
-#model = torch.compile(model)
 
 import os
 import pandas as pd
@@ -311,19 +308,6 @@ def save_results_to_csv(l_refs, l_hyps, epoch, exp_dirpath, split, time, step=0)
 
     return output_file
 
-
-# best_bleu1 = -9999999.9
-# best_cider = -9999999.9
-# best_meteor = -9999999.9
-# best_bertscore = -9999999.9
-# best_f1_chexbert = -9999999.9
-# best_rougel = -9999999.9
-# epoch_best_bleu1 = 0
-# epoch_best_cider = 0
-# epoch_best_meteor = 0
-# epoch_best_bertscore = 0
-# epoch_best_f1_chexbert = 0
-# epoch_best_rougel = 0
 print("\n---- Start Training ----")
 for epoch in range(start_epoch, epochs):
     
@@ -335,7 +319,7 @@ for epoch in range(start_epoch, epochs):
         train_hnm_loss = 0
         dict_loss = {}
     
-    eval_every_n_steps = 1000000 #43200 4h  # Puedes ajustar esto
+    # eval_every_n_steps = 7000000 #43200 4h  # Puedes ajustar esto
 
     if epoch != 100: # Do Test first    #0
         model.train()
@@ -346,8 +330,6 @@ for epoch in range(start_epoch, epochs):
                     continue  # Skip already-trained steps
                 
                 pixel_values = batch['images'].to(device)
-                # inputs_id = batch['input_ids'].to(device)
-                # attention_mask  = batch['attention_mask'].to(device)
                 questions_ids = batch['questions_ids'].to(device)
                 questions_mask  = batch['questions_mask'].to(device)
                 answers_ids = batch['answers_ids'].to(device)
@@ -368,8 +350,6 @@ for epoch in range(start_epoch, epochs):
                             model=model, 
                             images_mask=images_mask
                     )
-                    # out contains: 
-                    # reward_greedy, greedy_hyp_list, ref_list
                     
                 # 2. Sampling
                 model = model.train()
@@ -384,9 +364,6 @@ for epoch in range(start_epoch, epochs):
                         images_mask=images_mask,
                         labels=labels
                 )
-                # out contains: 
-                # loss, delta_reward, delta_reward_per_metric, reward_sampling, sampling_hyp_list, nll_loss 
-                
                 loss = out["loss"] # Reward Loss
                 nll_loss = out["nll_loss"] # NLL Loss
 
@@ -395,10 +372,10 @@ for epoch in range(start_epoch, epochs):
 
                 current_time = time.time()
                 elapsed_time = current_time - start_time
-                trigger_by_steps = (steps % eval_every_n_steps == 0 and steps != 0)
+                # trigger_by_steps = (steps % eval_every_n_steps == 0 and steps != 0)
                 trigger_by_time = elapsed_time >= max_duration
 
-                if trigger_by_steps or trigger_by_time:
+                if trigger_by_time:
                     if trigger_by_time:
                         max_duration *= 2  # Duplicar para evitar reentradas cada paso
                     model.eval()
@@ -422,7 +399,6 @@ for epoch in range(start_epoch, epochs):
                                                 images=pixel_values, 
                                                 images_mask=images_mask,
                                                 labels=labels)
-                            # partial_test_loss += decoder_out['loss'].item()
 
                             generated_answers, _ = model.generate(
                                 pixel_values, images_mask=images_mask,
@@ -475,83 +451,10 @@ for epoch in range(start_epoch, epochs):
                 # statistics
                 train_loss += nll_loss.item()
 
-                #if steps == 4:
-                #        break
-
                 tepoch.set_description(f'Train Epoch [{epoch}/{epochs-1}] Loss: {nll_loss.item():.4f}')
             
             optimizer.zero_grad()
-
-        # HNM
-        if args.hnm:
-            HNM_trainloader = Hard_Negative_Mining(
-                dict_loss, train_dataset, batch_size, num_workers=num_workers)
-            
-            with tqdm(iter(HNM_trainloader), desc="Epoch " + str(epoch), unit="batch") as tepoch:
-                for steps, batch in enumerate(tepoch):
-                    
-                    pixel_values = batch['images'].to(device)
-                    # inputs_id = batch['input_ids'].to(device)
-                    # attention_mask  = batch['attention_mask'].to(device)
-                    questions_ids = batch['questions_ids'].to(device)
-                    questions_mask  = batch['questions_mask'].to(device)
-                    answers_ids = batch['answers_ids'].to(device)
-                    answers_mask  = batch['answers_mask'].to(device)
-                    images_mask  = batch['images_mask'].to(device)
-
-                    # 1 Greedy
-                    with torch.no_grad():
-                        model.eval()
-                        out = scst.forward_greedy(
-                            questions_ids=questions_ids, 
-                            questions_mask=questions_mask,
-                            answers_ids=answers_ids, 
-                            answers_mask=answers_mask,
-                            images=pixel_values, #.cuda(),
-                            model=model, 
-                            images_mask=images_mask
-                        )
-                        # out contains: 
-                        # reward_greedy, greedy_hyp_list, ref_list
-                    
-                    # 2. Sampling
-                    model = model.train()
-                    out = scst.forward_sampling(
-                            questions_ids=questions_ids,
-                            questions_mask=questions_mask,
-                            answers_ids=answers_ids, 
-                            answers_mask=answers_mask,
-                            reward_greedy=out["reward_greedy"],
-                            images=pixel_values, #.cuda(),
-                            model=model, 
-                            images_mask=images_mask
-                    )
-                    # out contains: 
-                    # loss, delta_reward, delta_reward_per_metric, reward_sampling, sampling_hyp_list, nll_loss 
-                    
-                    loss = out["loss"]
-                    nll_loss = out["nll_loss"]
-
-                    # Calculate gradients
-                    loss.backward()
-
-                    if steps % accumulate_grad_batches == 0 and steps != 0:
-
-                        # Update parameters
-                        optimizer.step()
-
-                        # zero the parameter gradients
-                        optimizer.zero_grad()
-
-                    # statistics
-                    train_hnm_loss += nll_loss.item()
-
-                    tepoch.set_description(f'HNM Epoch [{epoch}/{epochs-1}] Loss: {nll_loss.item():.4f}')
-
-                    #if steps == 4:
-                    #    break
-                optimizer.zero_grad()
-                
+              
         lr_scheduler.step()
 
     # Test
@@ -580,7 +483,6 @@ for epoch in range(start_epoch, epochs):
                                     images_mask=images_mask,
                                     labels=labels)          
                 loss = decoder_out['loss']
-                # print(loss)
 
                 generated_answers, _ = model.generate(
                     pixel_values, images_mask=images_mask,
@@ -600,10 +502,6 @@ for epoch in range(start_epoch, epochs):
 
                 # statistics
                 test_loss += loss.item()
-
-                #if steps == 4:
-                #        print("FIN TEST")
-                #        break
 
                 tepoch.set_description(f'Test Epoch [{epoch}/{epochs-1}] Loss: {loss.item():.4f}')
     
@@ -638,8 +536,6 @@ for epoch in range(start_epoch, epochs):
     }
     with open(save_path, 'wb') as f:
         torch.save(checkpoint, f)
-
-
 
     with open(EXP_DIR_PATH + "/log.txt", 'a') as file:
         # Write the string to the file
