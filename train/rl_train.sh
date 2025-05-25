@@ -2,6 +2,7 @@
 cd /home/maasala/llama-vqa/train 
 
 nvidia-smi --query-gpu=name --format=csv,noheader
+nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader | awk -F',' '{print "Memoria usada:" $1 " /" $2}'
 
 echo "RUNNING: $0 $@"
 
