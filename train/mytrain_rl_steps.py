@@ -158,8 +158,8 @@ np.random.seed(SEED)
 generator = torch.Generator()
 generator.manual_seed(SEED)
 
-batch_size = 2 # 12                         *se ha cambiado porque sino el generate falla al no tener preguntas del mismo tamaño
-accumulate_grad_batches = 12 # 2
+batch_size = 4 # 12                         *se ha cambiado porque sino el generate falla al no tener preguntas del mismo tamaño
+accumulate_grad_batches = 512 # 2
 num_workers = int(os.environ.get("OMP_NUM_THREADS", multiprocessing.cpu_count() - 1))
 print("Num workers", num_workers)
 train_dataloader = DataLoader(
