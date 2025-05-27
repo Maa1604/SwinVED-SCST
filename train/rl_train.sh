@@ -48,7 +48,7 @@ if [ -n "$CHKP" ]; then
 fi
 
 
-python mytrain_rl_steps.py \
+python train_rl.py \
     --exp_name "$EXP_NAME" \
     --cluster_id ${CLUSTER_ID} \
     --process_id ${PROCESS_ID} \
