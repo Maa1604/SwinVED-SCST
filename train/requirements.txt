@@ -187,7 +187,7 @@ PyQt5-sip==12.12.2
 PySocks
 python-dateutil
 python-json-logger
-pytorch-lightning==2.1.2
+pytorch-lightning
 pytorch-transformers==1.2.0
 pytz
 PyWavelets
