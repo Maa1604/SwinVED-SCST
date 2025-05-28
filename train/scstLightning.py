@@ -61,9 +61,6 @@ class SCSTLightningModule(pl.LightningModule):
         self.criterion = nn.NLLLoss()
         self.lr = lr
 
-        self.train_loss_total = 0
-        self.val_loss_total = 0
-
         self.bert_scorer = BertScorer()
         self.l_refs = []
         self.l_hyps = []
