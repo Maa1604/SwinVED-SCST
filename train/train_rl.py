@@ -5,8 +5,7 @@ from pytorch_lightning import Trainer
 from scstLightning import SCSTLightningModule
 from callbacks.scstloggingcallback import SCSTLoggingCallback
 from pytorch_lightning.callbacks import ModelCheckpoint
-from mydatasets.mimic_dataset import mimic_Dataset
-from torch.utils.data import DataLoader
+from dataloading import get_dataloaders
 import argparse
 
 ####################################################################
@@ -67,49 +66,11 @@ model = SCSTLightningModule(
 )
 
 ####################################################################
-# mimic_Dataset
-####################################################################
-
-
-test_dataset = mimic_Dataset(
-                transform=model.val_transform, 
-                tokenizer=model.tokenizer,
-                processor=model.processor,
-                partition = "test",
-                multi_image=3
-                )
-
-train_dataset = mimic_Dataset(
-                transform=model.train_transform, 
-                tokenizer=model.tokenizer,
-                processor=model.processor,
-                partition = "train",
-                multi_image=3
-                )
-
-####################################################################
 # Dataloader
 ####################################################################
 
-
 batch_size = 1
-accumulate_grad_batches = 12
-num_workers = int(os.environ.get("OMP_NUM_THREADS", multiprocessing.cpu_count() - 1))
-print("Num workers", num_workers)
-train_dataloader = DataLoader(
-    train_dataset, 
-    batch_size, 
-    shuffle=True, 
-    num_workers=num_workers,
-    collate_fn=train_dataset.get_collate_fn())
-
-test_dataloader = DataLoader(
-    test_dataset, 
-    1, 
-    shuffle=False, 
-    num_workers=num_workers,
-    collate_fn=test_dataset.get_collate_fn())
-
+train_dataloader, test_dataloader = get_dataloaders(model, batch_size=batch_size)
 
 ####################################################################
 # callbacks
