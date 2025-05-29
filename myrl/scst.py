@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn.utils.rnn import pad_sequence
 import torch.nn.functional as F
 from omegaconf.listconfig import ListConfig
 
@@ -242,12 +243,17 @@ class SCST(nn.Module):
             sampled_ids.append(row)
 
         # Stack into tensor
-        sampled_ids = torch.stack(sampled_ids)
+        sampled_ids = pad_sequence(sampled_ids, batch_first=True, padding_value=self.pad_token_id)
         # print(f"4: {sampled_ids}")
         # exit()
         # print(out.scores[:cutoff_index])
         logits = torch.stack(out.scores[:cutoff_index], dim=1)  # [batch_size, seq_len, vocab_size]
         logits = F.log_softmax(logits, dim=-1)
+
+        seq_len = min(logits.shape[1], sampled_ids.shape[1])
+        logits = logits[:, :seq_len, :]
+        sampled_ids = sampled_ids[:, :seq_len]
+
 
         # 3. Extract log-probs for sampled tokens
         sampled_logits = logits.gather(2, sampled_ids.unsqueeze(-1))
