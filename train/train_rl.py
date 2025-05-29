@@ -70,6 +70,8 @@ model = SCSTLightningModule(
 ####################################################################
 
 batch_size = 4
+effective_batch_size = 512
+accumulate_grad_batches = effective_batch_size // batch_size
 train_dataloader, test_dataloader = get_dataloaders(model, batch_size=batch_size)
 
 ####################################################################
@@ -110,5 +112,6 @@ trainer = Trainer(
     max_epochs=50,
     default_root_dir=experiment_path,
     callbacks=[logging_callback, checkpoint_callback, time_callback],
+    accumulate_grad_batches=accumulate_grad_batches
 )
 trainer.fit(model, train_dataloader, test_dataloader, ckpt_path=resume_checkpoint_path)
