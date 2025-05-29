@@ -89,7 +89,7 @@ checkpoint_callback = ModelCheckpoint(
 
 time_callback = TimeTriggeredCheckpointAndEvalCallback(
     log_dir=experiment_path,
-    max_duration_hours=0.04,
+    max_duration_hours=36,
     args=args,
 )
 
