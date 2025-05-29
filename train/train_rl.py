@@ -1,9 +1,9 @@
 import os
 import json
-import multiprocessing
 from pytorch_lightning import Trainer
 from scstLightning import SCSTLightningModule
 from callbacks.scstloggingcallback import SCSTLoggingCallback
+from callbacks.timetriggeredcallback import TimeTriggeredCheckpointAndEvalCallback
 from pytorch_lightning.callbacks import ModelCheckpoint
 from dataloading import get_dataloaders
 import argparse
@@ -69,7 +69,7 @@ model = SCSTLightningModule(
 # Dataloader
 ####################################################################
 
-batch_size = 1
+batch_size = 4
 train_dataloader, test_dataloader = get_dataloaders(model, batch_size=batch_size)
 
 ####################################################################
@@ -87,6 +87,12 @@ checkpoint_callback = ModelCheckpoint(
     save_on_train_epoch_end=True,
 )
 
+time_callback = TimeTriggeredCheckpointAndEvalCallback(
+    log_dir=experiment_path,
+    max_duration_hours=0.04,
+    args=args,
+)
+
 ####################################################################
 # train
 ####################################################################
@@ -97,8 +103,12 @@ else:
 
 
 trainer = Trainer(
+    precision='bf16',
+    accelerator='gpu',
+    devices=1, 
+    #strategy="ddp",
     max_epochs=50,
     default_root_dir=experiment_path,
-    callbacks=[logging_callback, checkpoint_callback],
+    callbacks=[logging_callback, checkpoint_callback, time_callback],
 )
 trainer.fit(model, train_dataloader, test_dataloader, ckpt_path=resume_checkpoint_path)
