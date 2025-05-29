@@ -1,9 +1,17 @@
-# dataloading.py
-
 import os
+import random
+import numpy as np
+import torch
 import multiprocessing
 from torch.utils.data import DataLoader
 from mydatasets.mimic_dataset import mimic_Dataset
+
+SEED = 42
+random.seed(SEED)
+torch.manual_seed(SEED)
+np.random.seed(SEED)
+generator = torch.Generator()
+generator.manual_seed(SEED)
 
 def get_dataloaders(model, partition="train,test", batch_size=1):
     num_workers = int(os.environ.get("OMP_NUM_THREADS", multiprocessing.cpu_count() - 1))
@@ -30,7 +38,8 @@ def get_dataloaders(model, partition="train,test", batch_size=1):
         batch_size=batch_size, 
         shuffle=True, 
         num_workers=num_workers,
-        collate_fn=train_dataset.get_collate_fn()
+        collate_fn=train_dataset.get_collate_fn(),
+        generator=generator
     )
 
     test_dataloader = DataLoader(
