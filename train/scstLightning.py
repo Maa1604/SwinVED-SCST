@@ -1,4 +1,3 @@
-
 import os
 import sys
 import torch
@@ -11,9 +10,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.getcwd()), os.pa
 
 from mymodels.swinbertcrossLORA import SwinBERTFinetuned
 from myrl.scst import SCST
-from pycocoevalcap.bertscore.bertscore import BertScorer
-from pycocoevalcap.myradgraph.myradgraph import myRadGraph
-from pycocoevalcap.metrics import Evaluator
 
 class SCSTLightningModule(pl.LightningModule):
     def __init__(self, model_arch, load_weights=None, scores=None, scores_args=None, scores_weights=None,
@@ -60,8 +56,7 @@ class SCSTLightningModule(pl.LightningModule):
         self.processor = self.model.processor
         self.criterion = nn.NLLLoss()
         self.lr = lr
-
-        self.bert_scorer = BertScorer()
+        
         self.l_refs = []
         self.l_hyps = []
 
@@ -147,8 +142,7 @@ class SCSTLightningModule(pl.LightningModule):
         self.l_hyps.extend(generated_answers)
 
         self.log('val_loss', output['loss'], on_step=False, on_epoch=True, prog_bar=True, logger=True)
-        return output['loss']
-
+        #return output['loss']
     def on_validation_epoch_end(self):
         
         self.l_refs.clear()
