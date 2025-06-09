@@ -7,6 +7,9 @@ from callbacks.timetriggeredcallback import TimeTriggeredCheckpointAndEvalCallba
 from pytorch_lightning.callbacks import ModelCheckpoint
 from mimic_datamodule import MimicDataModule
 import argparse
+import torch
+
+torch.set_float32_matmul_precision('medium')
 
 ####################################################################
 # model
@@ -69,7 +72,7 @@ model = SCSTLightningModule(
 # Dataloader
 ####################################################################
 
-batch_size = 4
+batch_size = 8
 effective_batch_size = 512
 accumulate_grad_batches = effective_batch_size // batch_size
 datamodule = MimicDataModule(model=model, batch_size=batch_size)
