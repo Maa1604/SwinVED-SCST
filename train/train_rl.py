@@ -5,7 +5,7 @@ from scstLightning import SCSTLightningModule
 from callbacks.scstloggingcallback import SCSTLoggingCallback
 from callbacks.timetriggeredcallback import TimeTriggeredCheckpointAndEvalCallback
 from pytorch_lightning.callbacks import ModelCheckpoint
-from dataloading import get_dataloaders
+from mimic_datamodule import MimicDataModule
 import argparse
 
 ####################################################################
@@ -72,7 +72,7 @@ model = SCSTLightningModule(
 batch_size = 4
 effective_batch_size = 512
 accumulate_grad_batches = effective_batch_size // batch_size
-train_dataloader, test_dataloader = get_dataloaders(model, batch_size=batch_size)
+datamodule = MimicDataModule(model=model, batch_size=batch_size)
 
 ####################################################################
 # callbacks
@@ -114,4 +114,7 @@ trainer = Trainer(
     callbacks=[logging_callback, checkpoint_callback, time_callback],
     accumulate_grad_batches=accumulate_grad_batches
 )
-trainer.fit(model, train_dataloader, test_dataloader, ckpt_path=resume_checkpoint_path)
+
+print(f"Resuming from checkpoint: {resume_checkpoint_path}")
+
+trainer.fit(model, datamodule=datamodule, ckpt_path=resume_checkpoint_path)

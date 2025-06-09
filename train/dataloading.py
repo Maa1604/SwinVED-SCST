@@ -5,6 +5,8 @@ import torch
 import multiprocessing
 from torch.utils.data import DataLoader
 from mydatasets.mimic_dataset import mimic_Dataset
+from stateful_sampler import StatefulSampler
+
 
 SEED = 42
 random.seed(SEED)
@@ -25,6 +27,8 @@ def get_dataloaders(model, partition="train,test", batch_size=1):
         multi_image=3
     )
 
+    sampler = StatefulSampler(train_dataset, shuffle=True, seed=SEED)
+
     test_dataset = mimic_Dataset(
         transform=model.val_transform, 
         tokenizer=model.tokenizer,
@@ -36,7 +40,7 @@ def get_dataloaders(model, partition="train,test", batch_size=1):
     train_dataloader = DataLoader(
         train_dataset, 
         batch_size=batch_size, 
-        shuffle=True, 
+        sampler=sampler, 
         num_workers=num_workers,
         collate_fn=train_dataset.get_collate_fn(),
         generator=generator

@@ -102,7 +102,7 @@ class SCSTLightningModule(pl.LightningModule):
             labels=labels
         )
 
-        self.log('train_loss', out["nll_loss"], on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_loss', out["nll_loss"], on_step=True, on_epoch=True, prog_bar=True, logger=True, batch_size=pixel_values.size(0))
         return out["loss"]
 
     def validation_step(self, batch, batch_idx):

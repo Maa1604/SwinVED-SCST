@@ -55,6 +55,13 @@ class mimic_Dataset(Dataset):
         print("SEP token: ", self.sep_token.item())
         print("CLS token: ", self.cls_token.item())
 
+        # State for resumability
+        self._position = 0
+        self._epoch = 0
+        self._indices = list(range(len(self.dataset_df)))
+        if self.partition == "train":
+            random.shuffle(self._indices)
+
     def __len__(self):
         return len(self.dataset_df)
     
@@ -71,6 +78,8 @@ class mimic_Dataset(Dataset):
 
 
     def __getitem__(self, idx):
+        if self.partition == "train":
+            idx = self._indices[idx]
 
         #idx = 0
         img_list_from_idx = []
@@ -226,3 +235,17 @@ class mimic_Dataset(Dataset):
             }
             return collated
         return collate_fn
+    
+    def state_dict(self):
+        return {
+            'position': self._position,
+            'epoch': self._epoch,
+            'indices': self._indices
+        }
+
+    def load_state_dict(self, state_dict):
+        self._position = state_dict['position']
+        self._epoch = state_dict['epoch']
+        self._indices = state_dict['indices']
+        print(f"Dataset resumed at position {self._position}, epoch {self._epoch}")
+
