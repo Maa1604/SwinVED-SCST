@@ -150,7 +150,7 @@
 <!-- End paper abstract -->
 
 <!-- Architecture -->
-<section class="section hero">
+<!-- <section class="section hero">
 	<div class="container is-max-desktop">
 		<div class="columns is-centered has-text-centered">
 			<div class="column is-four-fifths">
@@ -174,8 +174,37 @@
 			</div>
 		</div>
 	</div>
-</section>
+</section> -->
 <!-- End architecture -->
+
+<!-- Dataset -->
+<section class="section hero">
+	<div class="container is-max-desktop">
+		<div class="columns is-centered has-text-centered">
+			<div class="column is-four-fifths">
+				<h2 class="title is-3">Dataset</h2>
+				<div class="publication-image">
+					<img src="./static/images/FinalLabelDistribution.png" alt="Final Label Distribution" class="hover-zoom">
+				</div>
+			</div>
+		</div>
+		<div class="columns is-centered has-text-centered">
+			<div class="column is-four-fifths">
+				<div class="content has-text-justified">
+					<p>
+						In this study, we introduce a novel Visual Question Answering (VQA) dataset derived from the MIMIC-CXR dataset <i>(Johnson et al., 2019)</i>, a publicly available collection of 227,835 chest radiograph studies, each accompanied by a detailed radiology report and corresponding images. Our processed dataset encompasses a total of <b>377,110 chest X-ray images</b> and is tailored for the development of clinically meaningful VQA systems.<br><br>
+						
+						The dataset features <b>3,487,542 question-answer (QA) pairs</b> distributed across <b>15 clinically relevant categories</b>: Atelectasis, Cardiomegaly, Consolidation, Edema, Enlarged Mediastinum, Fracture, Lung Lesion, Lung Opacity, No Finding, Pleural Effusion, Pleural Other, Pneumonia, Pneumothorax, Support Devices, and Heart-related conditions. This makes it one of the most comprehensive datasets available for medical VQA research.<br><br>
+						
+						Each QA pair is generated based on expert-derived question templates applied to structured findings and free-text reports, ensuring both diversity and medical validity. The image above visualizes the final distribution of QA pairs across the 15 diagnostic categories, highlighting the dataset’s clinical balance and coverage. This resource enables the training and evaluation of models capable of answering detailed diagnostic queries from radiographic images.
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+<!-- End dataset -->
+
 
 <!-- Results -->
 <section class="section hero">
