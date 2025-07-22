@@ -62,7 +62,7 @@
 					</div>
 
 					<div class="is-size-5 publication-authors">
-						<span class="author-block">Universitat Politècnica de València<br>MIDL 2025</span>
+						<!-- <span class="author-block">Universitat Politècnica de València<br>MIDL 2025</span> -->
 						<span class="eql-cntrb"><small><br><sup>*</sup>Indicates Equal Contribution</small></span>
 					</div>
 
@@ -78,7 +78,7 @@
 							<span>Paper</span>
 							</a>
 						</span>
-						<span class="link-block">
+						<!-- <span class="link-block">
 							<a href="https://openreview.net/pdf?id=8CNssOg7fk"
 							class="external-link button is-normal is-rounded is-dark">
 							<span class="icon">
@@ -86,7 +86,7 @@
 							</span>
 							<span>OpenReview</span>
 							</a>
-						</span>
+						</span> -->
 						<!-- Video Link. -->
 						<!-- <span class="link-block">
 							<a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
@@ -99,7 +99,7 @@
 						</span> -->
 						<!-- Code Link. -->
 						<span class="link-block">
-							<a href="https://github.com/ljmtendero/A-VED-Model-For-Difference-Medical-VQA"
+							<a href="https://github.com/Maa1604/llama-vqa/tree/main"
 							class="external-link button is-normal is-rounded is-dark">
 							<span class="icon">
 								<i class="fab fa-github"></i>
@@ -121,7 +121,7 @@
 								<span class="icon">
 									<i class="fas fa-file-csv"></i>
 								</span>
-								<span>Medical-Diff-VQA Dataset</span>
+								<span>LLaMA-MedVQA Dataset</span>
 							</a>
 						</span>
 						</div>
@@ -140,7 +140,7 @@
 				<h2 class="title is-3">Abstract</h2>
 				<div class="content has-text-justified">
 					<p>
-						Difference Medical Visual Question Answering (Diff-VQA), a specialized subfield of Medical VQA, tackles the critical task of identifying and describing differences between pairs of medical images. This study introduces a novel Vision Encoder-Decoder (VED) architecture tailored for this task, focusing on the comparison of chest X-ray images to detect and explain changes. The proposed model incorporates two key innovations: (1) a light-weight Transformer text decoder architecture capable of generating precise and contextually relevant answers to complex medical questions, and (2) an enhanced fusion mechanism that improves the model’s ability to distinguish between two input images, enabling more accurate comparison of radiological findings. Our approach excels in identifying significant changes, such as pneumonia and lung opacity, demonstrating its utility in automating preliminary radiological assessments. By leveraging large-scale, domain-specific datasets and employing advanced training strategies, our VED architecture achieves state-of-the-art performance on standard VQA metrics, setting a new benchmark in diagnostic accuracy. These advancements highlight the potential of Diff-VQA to enhance clinical workflows and support radiologists in making more precise, informed decisions.
+						The interpretation of chest X-rays (CXRs) is a critical yet time-consuming task in clinical radiology, often limited by the availability of expert radiologists. To address this challenge, we introduce a novel large-scale medical Visual Question Answering (VQA) dataset derived from the MIMIC-CXR database, containing over 3.4 million question-answer (QA) pairs across 15 clinically relevant categories. Unlike prior datasets, our QA pairs are generated using a large language model (LLaMA 3.1) guided by a carefully crafted prompt structure to produce rich, nuanced, and evidence-based textual answers grounded in radiology reports. We address limitations of existing datasets—such as templated responses and linguistic monotony—by ensuring diversity, completeness, and clinical fidelity in our QA pairs. We also introduce a baseline Vision Encoder-Decoder model composed of a Swin Transformer image encoder and a 3-layer transformer decoder, trained through a multi-stage strategy that includes supervised learning and reinforcement learning (SCST) with BERTScore rewards. Extensive experiments demonstrate the effectiveness of our approach across multiple evaluation metrics, establishing a strong benchmark for future research in medical VQA. Our dataset and baseline model pave the way for building clinically meaningful AI tools that can assist radiologists by answering complex diagnostic questions with accuracy and interpretability.
 					</p>
 				</div>
 			</div>
