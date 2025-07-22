@@ -207,7 +207,7 @@
 
 
 <!-- Results -->
-<section class="section hero">
+<!-- <section class="section hero">
 	<div class="container is-max-desktop">
 		<div class="columns is-centered has-text-centered">
 			<div class="column is-four-fifths">
@@ -216,7 +216,7 @@
 					<img src="./static/images/results.svg" alt="Results of the proposed model" class="hover-zoom">
 				</div>
 			</div>
-		</div>
+		</div> -->
 		<!-- <div class="columns is-centered has-text-centered">
 			<div class="column is-four-fifths">
 				<div class="content has-text-justified">
@@ -226,8 +226,8 @@
 				</div>
 			</div>
 		</div> -->
-	</div>
-</section>
+	<!-- </div>
+</section> -->
 <!-- End architecture -->
 
 <!-- Stage Comparison Table -->
@@ -235,7 +235,16 @@
   <div class="container is-max-desktop">
     <div class="columns is-centered has-text-centered">
       <div class="column is-four-fifths">
-        <h2 class="title is-4">Comparison of Model Performance Across Stages</h2>
+        <h2 class="title is-3">Results</h2>
+		<div class="content has-text-justified">
+          <p>
+            We implemented a Vision Encoder-Decoder (VED) model designed for medical Visual Question Answering (VQA) on chest radiographs. To optimize performance, we trained the model using a structured three-stage approach:
+            <br><br>
+            <strong>Stage 1:</strong> The text decoder is trained while keeping the visual encoder (Swin Transformer) frozen. This allows the decoder to learn effective language generation based on static visual features.<br>
+            <strong>Stage 2:</strong> The visual encoder is unfrozen, enabling joint training with the decoder. This improves feature alignment between the visual and textual modalities.<br>
+            <strong>Stage 3:</strong> Reinforcement Learning (RL) is applied to fine-tune the model using task-specific metrics, leading to further improvements in answer relevance and fluency.
+          </p>
+        </div>
         <div class="table-container">
           <table class="table is-bordered is-striped is-hoverable is-fullwidth">
             <thead>
@@ -288,6 +297,11 @@
             </tbody>
           </table>
           <p class="has-text-centered mt-4"><em>Table: Comparison of our model performance through all the stages. The best results are shown in <strong>bold</strong>.</em></p>
+        </div>
+		<div class="content has-text-justified mt-5">
+          <p>
+            We invite fellow researchers to explore our newly released dataset and benchmark their models on this challenging medical VQA task. With over 3 million QA pairs and clinically grounded question types, the dataset provides a rich testbed for innovation. We encourage the community to propose new architectures or training strategies that can further improve the metrics reported above.
+          </p>
         </div>
       </div>
     </div>
