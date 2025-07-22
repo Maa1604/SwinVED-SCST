@@ -230,6 +230,72 @@
 </section>
 <!-- End architecture -->
 
+<!-- Stage Comparison Table -->
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-4">Comparison of Model Performance Across Stages</h2>
+        <div class="table-container">
+          <table class="table is-bordered is-striped is-hoverable is-fullwidth">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>BLEU-1</th>
+                <th>BLEU-2</th>
+                <th>BLEU-3</th>
+                <th>BLEU-4</th>
+                <th>METEOR</th>
+                <th>ROUGE-L</th>
+                <th>CIDEr</th>
+                <th>BERTScore</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Train Decoder FT-Swin</td>
+                <td>0.2837</td>
+                <td>0.2132</td>
+                <td>0.1669</td>
+                <td>0.1323</td>
+                <td>0.1707</td>
+                <td>0.4125</td>
+                <td>1.6421</td>
+                <td>0.5937</td>
+              </tr>
+              <tr>
+                <td>+ Unfreeze Swin</td>
+                <td>0.2867</td>
+                <td>0.2165</td>
+                <td>0.17</td>
+                <td>0.1352</td>
+                <td>0.1724</td>
+                <td>0.4137</td>
+                <td><strong>1.6514</strong></td>
+                <td>0.5954</td>
+              </tr>
+              <tr>
+                <td>+ RL</td>
+                <td><strong>0.3046</strong></td>
+                <td><strong>0.2290</strong></td>
+                <td><strong>0.1790</strong></td>
+                <td><strong>0.1416</strong></td>
+                <td><strong>0.1756</strong></td>
+                <td><strong>0.4143</strong></td>
+                <td>1.6329</td>
+                <td><strong>0.5957</strong></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="has-text-centered mt-4"><em>Table: Comparison of our model performance through all the stages. The best results are shown in <strong>bold</strong>.</em></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- End Stage Comparison Table -->
+
+
 <section class="section" id="BibTeX">
   <div class="container is-max-desktop content">
 	<h2 class="title">BibTeX</h2>
