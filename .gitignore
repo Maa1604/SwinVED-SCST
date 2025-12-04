@@ -1,7 +1,6 @@
 __pycache__/
 *.sif
 EXPERIMENTS/
-LlamaDATA/
-wandb/
+MIMIC-CXR-VQA/
 swin_mimic/
 wandb.env

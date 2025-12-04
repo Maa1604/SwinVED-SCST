@@ -27,7 +27,7 @@ DICT_DECODER_CONFIG = {
     "vocab_size": 12510,
 }
 
-class SwinBERTFinetuned(nn.Module):
+class SwinVEDFinetuned(nn.Module):
     """
     If proto is mentioned in decoder dict, loads pretrained models from proto strings.
     Otherwise, loads a BertGenerationDecoder model from decoder dict.
@@ -40,24 +40,6 @@ class SwinBERTFinetuned(nn.Module):
         self.encoder = SwinModel.from_pretrained(SWINB_IMAGENET22K_WEIGHTS_FINETUNE)
         # swin = SwinModel.from_pretrained(SWINB_IMAGENET22K_WEIGHTS_FINETUNE)
 
-        # target_modules = [
-        #     name for name in dict(swin.named_parameters()).keys()
-        #     if "layers.3" in name and ("query" in name or "key" in name or "value" in name)]
-        
-        # #remove last string after last dot
-        # target_modules = list(set([name[:name.rfind(".")] for name in target_modules]))
-        
-        # print("Target modules:", target_modules)
-        
-        # lora_config = LoraConfig(
-        #     r=8,
-        #     target_modules=target_modules,
-        #     lora_alpha=16,
-        #     lora_dropout=0.1)
-        
-        # self.encoder = get_peft_model(swin, lora_config)
-        # self.encoder.print_trainable_parameters()
-
         # Decoder
         self.tokenizer = BertTokenizer(
                                 vocab_file=VOCAB_PATH,
@@ -69,10 +51,6 @@ class SwinBERTFinetuned(nn.Module):
         
         dec_config = BertGenerationConfig(**DICT_DECODER_CONFIG) # DICT_DECODER_CONFIG
         self.decoder = BertGenerationDecoder(dec_config)
-
-        # self.pos_encoding = nn.Parameter(torch.zeros(3, self.decoder.config.hidden_size))
-
-        # torch.nn.init.normal_(self.pos_encoding, mean=0.0, std=1.0 / self.decoder.config.hidden_size**0.5)
         
         # Data Transformations
         self.train_transform = self.transforms_train_augmented()
@@ -187,19 +165,10 @@ class SwinBERTFinetuned(nn.Module):
         
         feature = self.main_ref_encode(images) # (b 2 144 1024)
 
-        # diff_feature = feature[:, 1] - feature[:, 0]
-
-        # feature = torch.cat([feature, diff_feature.unsqueeze(1)], dim=1) # (b 3 144 1024)
-
-        #Images mask is now shape (b, 2), but i need to convert it to (b, 3), so just add a new dimension that is the same of the last one
-        # images_mask = torch.cat([images_mask, images_mask[:, 1].unsqueeze(1)], dim=1)
-
         feature = feature * images_mask.unsqueeze(-1).unsqueeze(-1)
 
         if torch.cuda.is_available():
             feature = feature.cuda()
-        
-        # feature = feature + self.pos_encoding.unsqueeze(1)
 
         # Creating feature-wise attention mask
         feature = rearrange(feature, 'b d1 d2 d3 -> b (d1 d2) d3') # (b 288 1024)

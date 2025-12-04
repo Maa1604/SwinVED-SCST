@@ -12,10 +12,10 @@ from torch.utils.data._utils.collate import default_collate as pytorch_default_c
 import random
 from einops import rearrange
 
-from paths import IMAGES_MIMIC_PATH, DICT_CSV_MIMIC_PATH
+from paths import IMAGES_MIMIC_PATH, DICT_CSV_MIMIC_CXR_VQA_PATH
 from mydatasets.mydatasets_utils import ifcc_clean_report, vilmedic_collate
 
-class mimic_Dataset(Dataset):
+class mimic_cxr_vqa_Dataset(Dataset):
 
     def __init__(self, 
                  transform, 
@@ -34,7 +34,7 @@ class mimic_Dataset(Dataset):
         self.random_padding = self.partition == "train"
 
         # Load CSV partition
-        self.csv_path = DICT_CSV_MIMIC_PATH[self.partition]
+        self.csv_path = DICT_CSV_MIMIC_CXR_VQA_PATH[self.partition]
         self.dataset_df = pd.read_csv(self.csv_path)
         
         # Remove empty question or answer from self.dataset_df
@@ -75,11 +75,11 @@ class mimic_Dataset(Dataset):
         #idx = 0
         img_list_from_idx = []
 
-        num_images = len(self.dataset_df.iloc[idx].images.split(","))
+        num_images = len(self.dataset_df.iloc[idx].image_path.split(","))
 
         # Process all images from patient idx
         for i in range(num_images):
-            img_name = self.img_root_dir / self.dataset_df.iloc[idx].images.split(",")[i]
+            img_name = self.img_root_dir / self.dataset_df.iloc[idx].image_path.split(",")[i]
             image = Image.open(img_name).convert('RGB')
             #image.save('rad.png')
             

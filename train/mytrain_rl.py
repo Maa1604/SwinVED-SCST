@@ -13,11 +13,7 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.getcwd()), os.pardir))) # "/home/user/RRG/rrg"
 
-from mymodels.swinbert9k import SwinBERT9k
-from mymodels.resswinbert import ResidualSwinBert
-from mymodels.ressefficientbert import ResidualEfficientBert
-from mymodels.tinyvitbert import TinyViTBert
-from mymodels.swinbertcrossLORA import SwinBERTFinetuned
+from mymodels.swinVED import SwinVEDFinetuned
 
 
 from myrl.scst import SCST
@@ -25,7 +21,7 @@ from myrl.scst import SCST
 # from myscorers.meteor.meteor import MeteorScorer
 # from myscorers.cider.cider import Cider
 # from myscorers.rouge.rouge import Rouge
-from mydatasets.mimic_dataset import mimic_Dataset
+from mydatasets.mimic_cxr_vqa_dataset import mimic_cxr_vqa_Dataset
 # from myscorers.chexbert.chexbert import myF1ChexBert
 # from myscorers.bertscore.bertscore import BertScorer
 from train.train_utils import multiassign, Hard_Negative_Mining
@@ -104,7 +100,7 @@ if not os.path.exists(EXP_DIR_PATH):
 ####################################################################
 
 DICT_MODELS = {
-    "SwinBERTFinetuned": SwinBERTFinetuned(),
+    "SwinVEDFinetuned": SwinVEDFinetuned(),
     # "SwinBERT9k": SwinBERT9k(),
     # "ResidualSwin": ResidualSwinBert(),
     # "ResidualEfficient": ResidualEfficientBert(),
@@ -132,7 +128,7 @@ scst = SCST(
 # Dataset Class
 ####################################################################
 
-test_dataset = mimic_Dataset(
+test_dataset = mimic_cxr_vqa_Dataset(
                 transform=model.val_transform, 
                 tokenizer=model.tokenizer,
                 processor=model.processor,
@@ -140,7 +136,7 @@ test_dataset = mimic_Dataset(
                 multi_image=3
                 )
 
-train_dataset = mimic_Dataset(
+train_dataset = mimic_cxr_vqa_Dataset(
                 transform=model.train_transform, 
                 tokenizer=model.tokenizer,
                 processor=model.processor,

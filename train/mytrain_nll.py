@@ -14,11 +14,11 @@ import pandas as pd
 
 sys.path.append(os.path.abspath(os.path.join(os.path.abspath(os.getcwd()), os.pardir))) # "/home/user/RRG/rrg"
 
-from mymodels.swinbertcrossLORA import SwinBERTFinetuned
+from mymodels.swinVED import SwinVEDFinetuned
 
-from mydatasets.mimic_dataset import mimic_Dataset
+from mydatasets.mimic_cxr_vqa_dataset import mimic_cxr_vqa_Dataset
 from train.train_utils import multiassign, Hard_Negative_Mining
-from train.metrics import metrics_to_log
+# from train.metrics import metrics_to_log
 from pycocoevalcap.metrics import Evaluator  # new
 torch.set_float32_matmul_precision('medium')
 
@@ -59,10 +59,14 @@ if not os.path.exists(EXP_DIR_PATH):
 ####################################################################
 
 DICT_MODELS = {
-    "SwinBERTFinetuned": SwinBERTFinetuned(),
+    "SwinVEDFinetuned": SwinVEDFinetuned(),
 }
 device = 'cuda:0'
 model = DICT_MODELS[args.model_arch]
+
+####################################################################
+# Freeze Encoder
+####################################################################
 
 # Freeze encoder wights only in first phase
 # for param in model.encoder.parameters():
@@ -80,7 +84,7 @@ if args.load_weights != None:
 # Dataset Class
 ####################################################################
 
-test_dataset = mimic_Dataset(
+test_dataset = mimic_cxr_vqa_Dataset(
                 transform=model.val_transform, 
                 tokenizer=model.tokenizer,
                 processor=model.processor,
@@ -88,7 +92,7 @@ test_dataset = mimic_Dataset(
                 multi_image=3
                 )
 
-train_dataset = mimic_Dataset(
+train_dataset = mimic_cxr_vqa_Dataset(
                 transform=model.train_transform, 
                 tokenizer=model.tokenizer,
                 processor=model.processor,
