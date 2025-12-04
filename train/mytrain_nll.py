@@ -35,6 +35,7 @@ parser.add_argument('--load_weights', type=str, default=None, help='Load weights
 parser.add_argument('--hnm', type=bool, default=False, help='Use Hard Negative Mining.')
 parser.add_argument('--train_set', type=str, default="train", help='Load weights.')
 parser.add_argument('--metrics_on_train', action='store_true', default=False, help='Calculate metrics on train.')
+parser.add_argument('--freeze_encoder', action='store_true', default=False, help='Freeze the encoder weights at the start.')
 
 # Parsea los argumentos
 args = parser.parse_args()
@@ -68,13 +69,17 @@ model = DICT_MODELS[args.model_arch]
 # Freeze Encoder
 ####################################################################
 
-# Freeze encoder wights only in first phase
-# for param in model.encoder.parameters():
-#     param.requires_grad = False
+if args.freeze_encoder:
+    print("\n--- Freezing Encoder Weights ---")
+    for param in model.encoder.parameters():
+        param.requires_grad = False
+    print("Encoder weights are frozen!")
+else:
+    print("\n--- Encoder Weights are NOT Frozen ---")
 
-# for name, param in model.named_parameters():
-#     print(f"Layer: {name} | Requires Grad: {param.requires_grad}")
-
+####################################################################
+# Load Weights
+####################################################################
 
 if args.load_weights != None:
     model.load_state_dict(torch.load(args.load_weights))
