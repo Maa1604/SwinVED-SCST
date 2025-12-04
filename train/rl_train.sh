@@ -1,7 +1,7 @@
 python mytrain_rl.py \
-    --exp_name exp1_stage2 \
+    --exp_name SwinVED_UnfreezedEncoder_RL \
     --model_arch SwinVEDFinetuned \
-    --load_weights SwinBERT_UnfreezedEncoder/best_bertscore_0_model.pt\
+    --load_weights SwinVED_UnfreezedEncoder/best_bertscore_0_model.pt\
     --scores BertScorer \
     --scores_args {} \
     --scores_weights 0.4,0.6 \

@@ -1,6 +1,5 @@
 python mytrain_nll.py \
-    --exp_name SwinBERT_FrozenEncoder \
+    --exp_name SwinVED_UnfreezedEncoder \
     --model_arch SwinVEDFinetuned \
     --hnm True \
-    --freeze_encoder \
-    --load_weights SwinBERT_UnfreezedEncoder/best_bertscore_0_model.pt
+    --load_weights SwinVED_FrozenEncoder/best_bertscore_0_model.pt
