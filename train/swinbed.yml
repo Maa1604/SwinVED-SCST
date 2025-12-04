@@ -13,3 +13,15 @@ dependencies:
   - pytorch
   - torchvision
   - torchaudio
+  - cudatoolkit=11.8
+  - tqdm
+  - opencv
+  - einops
+  - transformers==4.27.4
+  - nltk
+  - omegaconf
+  - pip:
+    - albumentations
+    - bert-score
+    - radgraph==0.0.9
+    - tabulate

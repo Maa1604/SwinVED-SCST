@@ -11,7 +11,6 @@ from transformers import AutoFeatureExtractor, SwinModel, BertTokenizer
 
 from paths import VOCAB_PATH, SWINB_IMAGENET22K_WEIGHTS, SWINB_IMAGENET22K_WEIGHTS_FINETUNE
 from mymodels.beam_search import prepare_inputs_for_generation, _validate_model_kwargs
-from peft import LoraConfig, get_peft_model
 
 DICT_DECODER_CONFIG = {
     "is_decoder": True,
