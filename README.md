@@ -23,7 +23,7 @@ This work is built upon the **MIMIC-CXR-VQA** dataset:
 
 🔗 **Link:** [Comming Soon!!]
 
-## 📂 Directory Structure and Contents
+📂 Directory Structure and Contents
 
 To ensure the training scripts function correctly, you must download the dataset and set up the following structure.
 
