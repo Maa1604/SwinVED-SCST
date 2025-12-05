@@ -33,7 +33,7 @@ You need to download the CSV files for the **MIMIC-CXR-VQA** dataset and place t
 
 ### 2. Vocabulary Creation
 
-Use the provided script to generate the vocabulary file:
+Use the provided script inside the folder `MIMIC-CXR-VQA` to generate the vocabulary file:
 
 ```bash
 python createvocab.py
