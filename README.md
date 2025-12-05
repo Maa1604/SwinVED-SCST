@@ -47,15 +47,7 @@ The only variable you are required to set correctly is:
 
 - **`IMAGES_MIMIC_PATH`**: This must point to the root directory containing the actual MIMIC-CXR images.
 
-Ensure your directory structure resembles the following (assuming you use a `/data` folder):
 
-/data/
-├── MIMIC-CXR-VQA/
-│ ├── train.csv
-│ ├── val.csv
-│ └── test.csv
-├── [Directory containing all MIMIC-CXR Images] <-- This path is set by IMAGES_MIMIC
------
 
 ## 1\. Environment Setup 🐍
 
