@@ -1,6 +1,7 @@
 __pycache__/
 *.sif
 EXPERIMENTS/
-MIMIC-CXR-VQA/
 swin_mimic/
 wandb.env
+MIMIC-CXR-VQA/
+!MIMIC-CXR-VQA/createvocab.py
